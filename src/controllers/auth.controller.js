@@ -5,10 +5,10 @@ import jwt from "jsonwebtoken";
 // @desc Signup
 export const signup = async (req, res) => {
     try {
-        const { email, password, username } = req.body;
+        const { email, password, name } = req.body;
 
         // Validate fields
-        if (!email || !password || !username)
+        if (!email || !password || !name)
             return res.status(400).json({ message: "All fields are required" });
 
         // Check if user exists
@@ -22,12 +22,12 @@ export const signup = async (req, res) => {
         const user = await User.create({
             email,
             password: hashedPassword,
-            username,
+            name,
         });
 
         res.status(201).json({
             message: "User registered successfully",
-            user: { id: user._id, email: user.email, username: user.username },
+            user: { id: user._id, email: user.email, name: user.name },
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -59,7 +59,7 @@ export const login = async (req, res) => {
         res.json({
             message: "Login Successful",
             token,
-            user: { id: user._id, email: user.email, username: user.username },
+            user: { id: user._id, email: user.email, name: user.name },
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
