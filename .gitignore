@@ -1,0 +1,81 @@
+# ===========================
+# Node / Backend Essentials
+# ===========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ===========================
+# Environment Variables
+# ===========================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ===========================
+# Logs
+# ===========================
+logs/
+*.log
+debug.log
+error.log
+*.pid
+*.seed
+
+# ===========================
+# Temporary Files
+# ===========================
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+
+# ===========================
+# OS / IDE Files
+# ===========================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs (WebStorm, IntelliJ, etc.)
+.idea/
+
+# ===========================
+# Build and Cache
+# ===========================
+dist/
+build/
+.cache/
+coverage/
+
+# ===========================
+# Backups / Other
+# ===========================
+*.bak
+*.orig
+*.zip
+*.tar.gz
+*.gz
+
+# ===========================
+# Database Dumps
+# ===========================
+dump/
+*.bson
+*.json
+*.sql
