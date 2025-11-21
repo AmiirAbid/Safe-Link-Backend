@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const MitigationSchema = new mongoose.Schema({
     timestamp: {
@@ -30,4 +30,5 @@ const MitigationSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Mitigation", MitigationSchema);
+const Mitigation = mongoose.model("Mitigation", MitigationSchema);
+export default Mitigation;
