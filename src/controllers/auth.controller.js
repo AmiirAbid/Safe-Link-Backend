@@ -1,5 +1,4 @@
 import User from "../models/User.js";
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 // @desc Signup
@@ -16,12 +15,9 @@ export const signup = async (req, res) => {
         if (userExists)
             return res.status(400).json({ message: "Email already exists" });
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
         const user = await User.create({
             email,
-            password: hashedPassword,
+            password,
             name,
         });
 
@@ -45,7 +41,7 @@ export const login = async (req, res) => {
             return res.status(400).json({ message: "Invalid credentials" });
 
         // Compare password
-        const validPassword = await bcrypt.compare(password, user.password);
+        const validPassword = await user.comparePassword(password);
         if (!validPassword)
             return res.status(400).json({ message: "Invalid credentials" });
 
