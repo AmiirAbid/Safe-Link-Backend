@@ -1,6 +1,12 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const AlertSchema = new mongoose.Schema({
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+
     timestamp: {
         type: Date,
         default: Date.now
@@ -11,15 +17,8 @@ const AlertSchema = new mongoose.Schema({
         required: true
     },
 
-    dst_ip: {
-        type: String,
-        required: false
-    },
-
-    dst_port: {
-        type: Number,
-        required: false
-    },
+    dst_ip: String,
+    dst_port: Number,
 
     attack_type: {
         type: String,
