@@ -37,3 +37,32 @@ export const getAlerts = async (req, res) => {
         return res.status(500).json({ error: "Server error" });
     }
 };
+
+export const getAlert = async (req, res) => {
+    try {
+        const alertId = req.params.id;
+        const userId = req.user._id;
+
+        // Fetch alert and ensure it belongs to the authenticated user
+        const alert = await Alert.findOne({
+            _id: alertId,
+            user_id: userId
+        });
+
+        if (!alert) {
+            return res.status(404).json({ message: "Alert not found" });
+        }
+
+        return res.json(alert);
+
+    } catch (error) {
+        console.error("Error fetching alert:", error);
+
+        // Invalid ObjectId format
+        if (error.name === "CastError") {
+            return res.status(400).json({ message: "Invalid alert ID" });
+        }
+
+        res.status(500).json({ message: "Server error" });
+    }
+};
