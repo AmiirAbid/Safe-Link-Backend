@@ -66,3 +66,30 @@ export const getAlert = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
+//
+ export const deleteAlert = async (req, res) => {
+    try {
+        const alertId = req.params.id;
+        const userId = req.user._id;
+
+        const alert = await Alert.findOneAndDelete({
+            _id: alertId,
+            user_id: userId
+        });
+
+        if (!alert) {
+            return res.status(404).json({ message: "Alert not found" });
+        }
+
+        return res.status(200).json({ message: "Alert deleted successfully" });
+
+    } catch (error) {
+        console.error("Error deleting alert:", error);
+
+        if (error.name === "CastError") {
+            return res.status(400).json({ message: "Invalid alert ID" });
+        }
+
+        return res.status(500).json({ message: "Server error" });
+    }
+};
