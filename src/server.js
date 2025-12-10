@@ -6,6 +6,8 @@ import authRoutes from "./routes/auth.route.js";
 import statusRoute from "./routes/status.route.js";
 import alertsRoute from "./routes/alerts.route.js";
 import scanRoute from "./routes/scan.route.js";
+import logsRoute from "./routes/log.route.js";
+
 
 // Load env variables
 dotenv.config();
@@ -23,6 +25,7 @@ app.use("/", statusRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/alerts", alertsRoute);
 app.use("/api/scan", scanRoute);
+app.use("/api/logs", logsRoute);
 
 // Start server
 const PORT = process.env.PORT || 5001;
