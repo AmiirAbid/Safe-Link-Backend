@@ -7,7 +7,7 @@ import statusRoute from "./routes/status.route.js";
 import alertsRoute from "./routes/alerts.route.js";
 import scanRoute from "./routes/scan.route.js";
 import logsRoute from "./routes/log.route.js";
-
+import mitigationsRoute from "./routes/mitigations.route.js";
 
 // Load env variables
 dotenv.config();
@@ -24,6 +24,7 @@ connectDB();
 app.use("/", statusRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/alerts", alertsRoute);
+app.use("/api/mitigations", mitigationsRoute);
 app.use("/api/scan", scanRoute);
 app.use("/api/logs", logsRoute);
 

@@ -62,3 +62,81 @@ export const mitigateAlert = async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 };
+
+export const getMitigations = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // Pagination parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        // Base filter (mitigations performed by the authenticated user)
+        const filter = { performed_by: userId };
+
+        // Optional filters
+        if (req.query.status) filter.status = req.query.status;           // success / failed
+        if (req.query.action) filter.action = req.query.action;           // block / isolate
+
+        // Optional sorting (?sort=-timestamp)
+        const sort = req.query.sort || "-timestamp";
+
+        // Fetch paginated mitigations + summary in parallel
+        const [actions, totalCount, summaryAgg] = await Promise.all([
+            Mitigation.find(filter)
+                .sort(sort)
+                .skip(skip)
+                .limit(limit)
+                .select("_id timestamp action target_ip status"),
+
+            Mitigation.countDocuments(filter),
+
+            Mitigation.aggregate([
+                { $match: filter },
+                {
+                    $group: {
+                        _id: null,
+                        total: { $sum: 1 },
+                        success: {
+                            $sum: { $cond: [{ $eq: ["$status", "success"] }, 1, 0] }
+                        },
+                        failed: {
+                            $sum: { $cond: [{ $eq: ["$status", "failed"] }, 1, 0] }
+                        },
+                        block: {
+                            $sum: { $cond: [{ $eq: ["$action", "block"] }, 1, 0] }
+                        },
+                        isolate: {
+                            $sum: { $cond: [{ $eq: ["$action", "isolate"] }, 1, 0] }
+                        }
+                    }
+                }
+            ])
+        ]);
+
+        const summary =
+            summaryAgg.length > 0
+                ? summaryAgg[0]
+                : {
+                    total: 0,
+                    success: 0,
+                    failed: 0,
+                    block: 0,
+                    isolate: 0
+                };
+
+        return res.status(200).json({
+            page,
+            limit,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / limit),
+
+            actions,
+            summary
+        });
+    } catch (error) {
+        console.error("Error fetching mitigations:", error);
+        return res.status(500).json({ error: "Server error" });
+    }
+};
