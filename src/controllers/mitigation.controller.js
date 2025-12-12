@@ -36,7 +36,7 @@ export const mitigateAlert = async (req, res) => {
         const mitigation = await Mitigation.create({
             performed_by: userId,
             action,
-            target_ip: alert.source_ip || "unknown", // dépend de ton modèle Alert
+            target_ip: alert.src_ip || "unknown", // dépend de ton modèle Alert
             status: mitigationStatus
         });
 
