@@ -1,37 +1,31 @@
 import Log from "../models/Log.js";
 
-/**
- * GET /logs
- * Retourne les logs réseau avec pagination et filtres optionnels
- */
 export const getLogs = async (req, res) => {
     try {
-        // Pagination
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * limit;
-
-        // Filtrage optionnel par protocole ou IP
         const filter = {};
+
+        // Optional filters
         if (req.query.protocol) filter.protocol = req.query.protocol.toUpperCase();
         if (req.query.src_ip) filter.src_ip = req.query.src_ip;
         if (req.query.dst_ip) filter.dst_ip = req.query.dst_ip;
 
-        // Récupérer les logs avec pagination
-        const [logs, total] = await Promise.all([
-            Log.find(filter).sort({ timestamp: -1 }).skip(skip).limit(limit),
-            Log.countDocuments(filter)
-        ]);
+        // Optional duration filter: ?days=7  → last 7 days
+        if (req.query.days) {
+            const days = parseInt(req.query.days);
+            if (!isNaN(days) && days > 0) {
+                const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+                filter.timestamp = { $gte: cutoff };
+            }
+        }
+
+        const logs = await Log.find(filter).sort({ timestamp: -1 });
 
         if (!logs || logs.length === 0) {
             return res.status(404).json({ message: "No logs found for the given filters" });
         }
 
         return res.status(200).json({
-            page,
-            limit,
-            total,
-            totalPages: Math.ceil(total / limit),
+            total: logs.length,
             data: logs
         });
 
