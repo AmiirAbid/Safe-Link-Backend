@@ -1,5 +1,4 @@
 export const FEATURE_RANGES = {
-    // Packet Lengths (0–3000 normally)
     "Fwd Packet Length Min": [0, 1500],
     "Fwd Packet Length Mean": [200, 2000],
     "Fwd Packet Length Max": [300, 3000],
@@ -8,7 +7,6 @@ export const FEATURE_RANGES = {
     "Bwd Packet Length Mean": [200, 2000],
     "Bwd Packet Length Max": [300, 3000],
 
-    // Inter-arrival times (0–3000)
     "Flow IAT Mean": [0, 3000],
     "Flow IAT Min": [0, 3000],
     "Flow IAT Max": [0, 4000],

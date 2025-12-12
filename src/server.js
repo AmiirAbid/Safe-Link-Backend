@@ -9,18 +9,14 @@ import scanRoute from "./routes/scan.route.js";
 import logsRoute from "./routes/log.route.js";
 import mitigationsRoute from "./routes/mitigations.route.js";
 
-// Load env variables
 dotenv.config();
 
-// Initialize Express
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Connect Database
 connectDB();
 
-// Routes
 app.use("/", statusRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/alerts", alertsRoute);

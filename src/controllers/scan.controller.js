@@ -1,18 +1,14 @@
 import axios from "axios";
 import { generateRandomFeatures } from "../utils/randomFeatures.js";
 
-// YOUR FLASK API URL (Render)
 const FLASK_API_URL = process.env.FLASK_API_URL;
 
 export const scan = async (req, res) => {
     try {
-        // 1. Generate random feature values
         const inputData = generateRandomFeatures();
 
-        // 2. Send to Flask /predict
         const response = await axios.post(FLASK_API_URL+'/predict', inputData);
 
-        // 3. Return Flask prediction directly
         return res.status(200).json({
             success: true,
             generated_features: inputData,

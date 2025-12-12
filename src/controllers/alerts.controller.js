@@ -4,22 +4,17 @@ export const getAlerts = async (req, res) => {
     try {
         const userId = req.user._id;
 
-        // Pagination parameters
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        // Build filter by user
         const filter = { user_id: userId };
 
-        // Optional filters
         if (req.query.status) filter.status = req.query.status;
         if (req.query.severity) filter.severity = req.query.severity;
 
-        // Optional sorting: ?sort=-timestamp / ?sort=severity
         const sort = req.query.sort || "-timestamp";
 
-        // Fetch paginated alerts
         const [alerts, totalAlerts] = await Promise.all([
             Alert.find(filter).sort(sort).skip(skip).limit(limit),
             Alert.countDocuments(filter)
@@ -43,7 +38,6 @@ export const getAlert = async (req, res) => {
         const alertId = req.params.id;
         const userId = req.user._id;
 
-        // Fetch alert and ensure it belongs to the authenticated user
         const alert = await Alert.findOne({
             _id: alertId,
             user_id: userId
@@ -58,7 +52,6 @@ export const getAlert = async (req, res) => {
     } catch (error) {
         console.error("Error fetching alert:", error);
 
-        // Invalid ObjectId format
         if (error.name === "CastError") {
             return res.status(400).json({ message: "Invalid alert ID" });
         }

@@ -1,16 +1,13 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
-// @desc Signup
 export const signup = async (req, res) => {
     try {
         const { email, password, name } = req.body;
 
-        // Validate fields
         if (!email || !password || !name)
             return res.status(400).json({ message: "All fields are required" });
 
-        // Check if user exists
         const userExists = await User.findOne({ email });
         if (userExists)
             return res.status(400).json({ message: "Email already exists" });
@@ -30,22 +27,18 @@ export const signup = async (req, res) => {
     }
 };
 
-// @desc Login
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Check user
         const user = await User.findOne({ email });
         if (!user)
             return res.status(400).json({ message: "Invalid credentials" });
 
-        // Compare password
         const validPassword = await user.comparePassword(password);
         if (!validPassword)
             return res.status(400).json({ message: "Invalid credentials" });
 
-        // Generate JWT
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
             process.env.JWT_SECRET,

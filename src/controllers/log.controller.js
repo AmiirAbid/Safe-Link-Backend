@@ -4,12 +4,10 @@ export const getLogs = async (req, res) => {
     try {
         const filter = {};
 
-        // Optional filters
         if (req.query.protocol) filter.protocol = req.query.protocol.toUpperCase();
         if (req.query.src_ip) filter.src_ip = req.query.src_ip;
         if (req.query.dst_ip) filter.dst_ip = req.query.dst_ip;
 
-        // Optional duration filter: ?days=7  → last 7 days
         if (req.query.days) {
             const days = parseInt(req.query.days);
             if (!isNaN(days) && days > 0) {
@@ -35,10 +33,7 @@ export const getLogs = async (req, res) => {
     }
 };
 
-/**
- * GET /logs/:id
- * Retourne un log spécifique par son ID
- */
+
 export const getLogById = async (req, res) => {
     try {
         const logId = req.params.id;
