@@ -18,22 +18,11 @@ export const signup = async (req, res) => {
             name,
         });
 
-        // Generate token for immediate login after signup
-        const token = jwt.sign(
-            { id: user._id, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: "7d" }
-        );
-
+        // DO NOT auto-login after signup
+        // User must login and setup 2FA first
         res.status(201).json({
-            message: "User registered successfully",
-            token,
-            user: { 
-                id: user._id, 
-                email: user.email, 
-                name: user.name,
-                twoFactorEnabled: false
-            },
+            message: "User registered successfully. Please login to continue.",
+            success: true
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -52,10 +41,8 @@ export const login = async (req, res) => {
         if (!validPassword)
             return res.status(400).json({ message: "Invalid credentials" });
 
-        // Check if 2FA is enabled
+        // Check if 2FA is ENABLED (user already setup 2FA)
         if (user.twoFactorEnabled) {
-            // DO NOT return a full access token yet
-            // Return userId for 2FA verification
             return res.json({
                 message: "2FA required",
                 requires2FA: true,
@@ -63,22 +50,24 @@ export const login = async (req, res) => {
             });
         }
 
-        // No 2FA, login normally with full token
+        // User needs to setup 2FA (first time login or 2FA not enabled)
+        // Generate temp token for initial dashboard access
         const token = jwt.sign(
-            { id: user._id, email: user.email },
+            { id: user._id, email: user.email, needsSetup2FA: true },
             process.env.JWT_SECRET,
-            { expiresIn: "7d" }
+            { expiresIn: "24h" }
         );
 
         res.json({
-            message: "Login Successful",
+            message: "Login successful. Please setup 2FA for enhanced security.",
             token,
             requires2FA: false,
+            needsSetup2FA: true,
             user: { 
                 id: user._id, 
                 email: user.email, 
                 name: user.name,
-                twoFactorEnabled: user.twoFactorEnabled
+                twoFactorEnabled: false
             },
         });
     } catch (error) {
@@ -96,10 +85,8 @@ export const complete2FALogin = async (req, res) => {
             return res.status(400).json({ message: "Invalid request" });
         }
 
-        // Import speakeasy
         const speakeasy = (await import("speakeasy")).default;
         
-        // Verify TOTP code
         let verified = speakeasy.totp.verify({
             secret: user.twoFactorSecret,
             encoding: "base32",
@@ -107,7 +94,6 @@ export const complete2FALogin = async (req, res) => {
             window: 2
         });
 
-        // Check backup codes if TOTP failed
         if (!verified) {
             const backupCode = user.twoFactorBackupCodes.find(
                 bc => bc.code === twoFactorToken.toUpperCase() && !bc.used
@@ -124,7 +110,7 @@ export const complete2FALogin = async (req, res) => {
             return res.status(400).json({ message: "Invalid verification code" });
         }
 
-        // NOW generate the full access token
+        // Generate full access token after successful 2FA
         const token = jwt.sign(
             { id: user._id, email: user.email },
             process.env.JWT_SECRET,
