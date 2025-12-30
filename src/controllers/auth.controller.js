@@ -54,22 +54,16 @@ export const login = async (req, res) => {
 
         // Check if 2FA is enabled
         if (user.twoFactorEnabled) {
-            // Return a temporary token that requires 2FA verification
-            const tempToken = jwt.sign(
-                { id: user._id, temp: true },
-                process.env.JWT_SECRET,
-                { expiresIn: "10m" }
-            );
-
+            // DO NOT return a full access token yet
+            // Return userId for 2FA verification
             return res.json({
                 message: "2FA required",
                 requires2FA: true,
-                tempToken,
-                userId: user._id
+                userId: user._id.toString()
             });
         }
 
-        // No 2FA, login normally
+        // No 2FA, login normally with full token
         const token = jwt.sign(
             { id: user._id, email: user.email },
             process.env.JWT_SECRET,
@@ -102,10 +96,10 @@ export const complete2FALogin = async (req, res) => {
             return res.status(400).json({ message: "Invalid request" });
         }
 
-        // This verification is already done in verify2FA endpoint
-        // But we double-check here for security
+        // Import speakeasy
         const speakeasy = (await import("speakeasy")).default;
         
+        // Verify TOTP code
         let verified = speakeasy.totp.verify({
             secret: user.twoFactorSecret,
             encoding: "base32",
@@ -130,7 +124,7 @@ export const complete2FALogin = async (req, res) => {
             return res.status(400).json({ message: "Invalid verification code" });
         }
 
-        // Generate full access token
+        // NOW generate the full access token
         const token = jwt.sign(
             { id: user._id, email: user.email },
             process.env.JWT_SECRET,
