@@ -20,24 +20,21 @@ const UserSchema = new mongoose.Schema({
         required: true
     },
 
-    // 2FA Fields
-    twoFactorSecret: {
-        type: String,
-        default: null
-    },
-
+    // Email-based 2FA Fields
     twoFactorEnabled: {
         type: Boolean,
         default: false
     },
 
-    twoFactorBackupCodes: [{
-        code: String,
-        used: {
-            type: Boolean,
-            default: false
-        }
-    }],
+    twoFactorCode: {
+        type: String,
+        default: null
+    },
+
+    twoFactorCodeExpiry: {
+        type: Date,
+        default: null
+    },
 
     created_at: {
         type: Date,
@@ -45,14 +42,14 @@ const UserSchema = new mongoose.Schema({
     }
 });
 
-// 🔐 Hash password before saving
+// Hash password before saving
 UserSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next();
     this.password = await bcrypt.hash(this.password, 10);
     next();
 });
 
-// 🔐 Compare password method
+// Compare password method
 UserSchema.methods.comparePassword = async function (password) {
     return bcrypt.compare(password, this.password);
 };
