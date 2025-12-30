@@ -20,6 +20,25 @@ const UserSchema = new mongoose.Schema({
         required: true
     },
 
+    // 2FA Fields
+    twoFactorSecret: {
+        type: String,
+        default: null
+    },
+
+    twoFactorEnabled: {
+        type: Boolean,
+        default: false
+    },
+
+    twoFactorBackupCodes: [{
+        code: String,
+        used: {
+            type: Boolean,
+            default: false
+        }
+    }],
+
     created_at: {
         type: Date,
         default: Date.now
