@@ -1,17 +1,11 @@
 import User from "../models/User.js";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 
-// Configure email transporter (using Gmail as example)
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER, // Your email
-        pass: process.env.EMAIL_PASS  // Your email app password
-    }
-});
+// Configure SendGrid
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// Generate and send 2FA code via email
+// Generate and send 2FA code via SendGrid
 export const send2FACode = async (req, res) => {
     try {
         const { userId } = req.body;
@@ -29,41 +23,105 @@ export const send2FACode = async (req, res) => {
         user.twoFactorCodeExpiry = new Date(Date.now() + 5 * 60 * 1000);
         await user.save();
 
-        // Send email
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
+        // SendGrid email message
+        const msg = {
             to: user.email,
+            from: process.env.EMAIL_FROM, // Your verified sender email
             subject: 'SafeLink - Your Verification Code',
+            text: `Your SafeLink verification code is: ${code}. This code will expire in 5 minutes.`,
             html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-                        <h1 style="color: white; margin: 0;">SafeLink Security</h1>
-                    </div>
-                    <div style="padding: 40px; background: #f9fafb;">
-                        <h2 style="color: #1f2937; margin-top: 0;">Verification Code</h2>
-                        <p style="color: #4b5563; font-size: 16px;">Hello ${user.name},</p>
-                        <p style="color: #4b5563; font-size: 16px;">Your verification code is:</p>
-                        <div style="background: white; padding: 20px; text-align: center; border-radius: 8px; margin: 30px 0;">
-                            <h1 style="color: #6366f1; font-size: 48px; letter-spacing: 8px; margin: 0;">${code}</h1>
-                        </div>
-                        <p style="color: #6b7280; font-size: 14px;">This code will expire in 5 minutes.</p>
-                        <p style="color: #6b7280; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
-                    </div>
-                    <div style="background: #1f2937; padding: 20px; text-align: center;">
-                        <p style="color: #9ca3af; font-size: 12px; margin: 0;">© 2025 SafeLink. All rights reserved.</p>
-                    </div>
-                </div>
-            `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>SafeLink Verification Code</title>
+                </head>
+                <body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 40px 0; text-align: center;">
+                                <table role="presentation" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                                    <!-- Header -->
+                                    <tr>
+                                        <td style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 40px 20px; text-align: center;">
+                                            <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: bold;">
+                                                🔐 SafeLink Security
+                                            </h1>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Body -->
+                                    <tr>
+                                        <td style="padding: 40px 30px;">
+                                            <h2 style="color: #1f2937; margin: 0 0 16px 0; font-size: 24px;">
+                                                Verification Code
+                                            </h2>
+                                            <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin: 0 0 24px 0;">
+                                                Hello <strong>${user.name}</strong>,
+                                            </p>
+                                            <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin: 0 0 32px 0;">
+                                                Your verification code is:
+                                            </p>
+                                            
+                                            <!-- Code Box -->
+                                            <table role="presentation" style="width: 100%; margin: 0 0 32px 0;">
+                                                <tr>
+                                                    <td style="background-color: #f9fafb; border: 2px solid #e5e7eb; border-radius: 12px; padding: 24px; text-align: center;">
+                                                        <span style="color: #6366f1; font-size: 48px; font-weight: bold; letter-spacing: 8px; font-family: 'Courier New', monospace;">
+                                                            ${code}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            
+                                            <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0 0 16px 0;">
+                                                ⏱️ This code will expire in <strong>5 minutes</strong>.
+                                            </p>
+                                            <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0;">
+                                                🔒 If you didn't request this code, please ignore this email or contact our support team.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Footer -->
+                                    <tr>
+                                        <td style="background-color: #1f2937; padding: 30px 20px; text-align: center;">
+                                            <p style="color: #9ca3af; font-size: 14px; margin: 0 0 8px 0;">
+                                                SafeLink Security - Protecting Your Network
+                                            </p>
+                                            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                                                © 2025 SafeLink. All rights reserved.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+                </html>
+            `,
         };
 
-        await transporter.sendMail(mailOptions);
+        // Send email via SendGrid
+        await sgMail.send(msg);
 
         res.json({ 
             message: "Verification code sent to your email",
             expiresIn: 300 // 5 minutes in seconds
         });
     } catch (error) {
-        console.error("Email send error:", error);
+        console.error("SendGrid error:", error);
+        
+        // Handle specific SendGrid errors
+        if (error.response) {
+            console.error("SendGrid response error:", error.response.body);
+            return res.status(500).json({ 
+                message: "Failed to send verification code. Please check your email configuration." 
+            });
+        }
+        
         res.status(500).json({ message: "Failed to send verification code" });
     }
 };
