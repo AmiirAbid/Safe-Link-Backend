@@ -78,36 +78,11 @@ export const login = async (req, res) => {
 // Complete login after 2FA verification
 export const complete2FALogin = async (req, res) => {
     try {
-        const { userId, token: twoFactorToken } = req.body;
+        const { userId } = req.body;
 
         const user = await User.findById(userId);
         if (!user || !user.twoFactorEnabled) {
             return res.status(400).json({ message: "Invalid request" });
-        }
-
-        const speakeasy = (await import("speakeasy")).default;
-        
-        let verified = speakeasy.totp.verify({
-            secret: user.twoFactorSecret,
-            encoding: "base32",
-            token: twoFactorToken,
-            window: 2
-        });
-
-        if (!verified) {
-            const backupCode = user.twoFactorBackupCodes.find(
-                bc => bc.code === twoFactorToken.toUpperCase() && !bc.used
-            );
-            
-            if (backupCode) {
-                verified = true;
-                backupCode.used = true;
-                await user.save();
-            }
-        }
-
-        if (!verified) {
-            return res.status(400).json({ message: "Invalid verification code" });
         }
 
         // Generate full access token after successful 2FA

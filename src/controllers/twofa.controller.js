@@ -9,6 +9,9 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 export const send2FACode = async (req, res) => {
     try {
         const { userId } = req.body;
+        console.log("Request to send 2FA code for userId:", userId);
+        console.log("Using SendGrid API Key:", process.env.SENDGRID_API_KEY);
+        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
         const user = await User.findById(userId);
         if (!user) {
@@ -17,6 +20,7 @@ export const send2FACode = async (req, res) => {
 
         // Generate 6-digit code
         const code = crypto.randomInt(100000, 999999).toString();
+        console.log(`Generated 2FA code for user ${user.email}:`, code);
         
         // Store code with expiry (5 minutes)
         user.twoFactorCode = code;
@@ -129,7 +133,7 @@ export const send2FACode = async (req, res) => {
 // Verify 2FA code
 export const verify2FA = async (req, res) => {
     try {
-        const { userId, code } = req.body;
+        const { userId, token } = req.body;
 
         const user = await User.findById(userId);
         
@@ -146,7 +150,7 @@ export const verify2FA = async (req, res) => {
             return res.status(400).json({ message: "Verification code has expired. Please request a new one." });
         }
 
-        if (user.twoFactorCode !== code) {
+        if (user.twoFactorCode !== token) {
             return res.status(400).json({ message: "Invalid verification code" });
         }
 
